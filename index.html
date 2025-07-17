@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinical Laboratory Risk Assessment Infographic - Gamified Workflow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F3F4F6;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .flow-node {
+            border: 2px solid #472F92;
+            background-color: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            font-weight: 600;
+            color: #374151;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            flex-grow: 1;
+            min-width: 180px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+        }
+        .flow-node.active {
+            border-color: #FECD54; /* Yellow highlight */
+            box-shadow: 0 0 15px rgba(254, 205, 84, 0.8); /* Glow effect */
+            background-color: #FFFBEB; /* Light yellow background */
+        }
+        .flow-decision {
+            transform: rotate(45deg);
+            width: 150px;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 2rem auto;
+            border: 2px solid #472F92;
+            background-color: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            font-weight: 600;
+            color: #374151;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+        }
+        .flow-decision span {
+            transform: rotate(-45deg);
+            max-width: 120px;
+        }
+        .flow-decision.active {
+            border-color: #FECD54;
+            box-shadow: 0 0 15px rgba(254, 205, 84, 0.8);
+            background-color: #FFFBEB;
+        }
+        .flow-connector {
+            position: relative;
+            height: 50px;
+            width: 2px;
+            background-color: #472F92;
+            margin: 0 auto;
+        }
+        .flow-connector::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid #472F92;
+        }
+        .flow-branch {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            position: relative;
+            padding: 2rem 0;
+        }
+        .flow-branch-line-h {
+            position: absolute;
+            top: 0;
+            height: 2px;
+            background-color: #472F92;
+        }
+        .flow-branch-line-v {
+            width: 2px;
+            background-color: #472F92;
+        }
+        .flow-label {
+            position: absolute;
+            background-color: #F3F4F6;
+            padding: 0 0.5rem;
+            color: #DC493A;
+            font-weight: 700;
+        }
+        .game-option-button {
+            background-color: #00A6FB;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .game-option-button:hover {
+            background-color: #0087D4;
+        }
+        .game-option-button.correct {
+            background-color: #10B981;
+        }
+        .game-option-button.incorrect {
+            background-color: #DC493A;
+        }
+        .game-option-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .game-feedback {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            font-weight: 600;
+        }
+        .game-feedback.correct {
+            background-color: #D1FAE5; /* Green-100 */
+            color: #065F46; /* Green-800 */
+        }
+        .game-feedback.incorrect {
+            background-color: #FEE2E2; /* Red-100 */
+            color: #991B1B; /* Red-800 */
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-black text-[#472F92] mb-4">Mastering Risk in the Clinical Lab</h1>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto">A visual guide to the systematic process of identifying, analyzing, and mitigating risks to ensure patient safety, data integrity, and regulatory compliance.</p>
+        </header>
+
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12 items-center">
+            <div class="bg-white rounded-lg shadow-md p-6 text-center">
+                <div class="text-[#00A6FB] text-6xl md:text-7xl font-black">98%</div>
+                <h3 class="text-xl font-bold mt-2 text-gray-700">Of Adverse Events</h3>
+                <p class="text-gray-600">are preventable through a robust risk management program. Proactive assessment is the cornerstone of laboratory quality and safety.</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6 lg:col-span-2">
+                 <h2 class="text-2xl font-bold text-[#472F92] mb-4 text-center">Anatomy of Laboratory Risks</h2>
+                 <p class="text-center text-gray-600 mb-4">Risks in a clinical setting are diverse. Our analysis of recent incident reports reveals a typical breakdown, highlighting key areas for focus. Procedural and pre-analytical steps often present the highest frequency of potential hazards.</p>
+                <div class="chart-container h-80 md:h-96">
+                    <canvas id="riskCategoriesChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-lg shadow-md p-6 md:p-8 mb-12">
+            <h2 class="text-3xl font-bold text-[#472F92] mb-6 text-center">The Risk Assessment & Mitigation Workflow</h2>
+            <p class="text-center text-gray-600 max-w-4xl mx-auto mb-8">This flow diagram illustrates the complete, cyclical process for managing risk. It is a continuous loop designed to adapt to new challenges and drive ongoing improvement in laboratory practices. Follow the path from initial identification to documentation and review.</p>
+
+            <div class="flex flex-col items-center">
+                <div class="flow-node" id="workflowNode_start">Start: Identify Process/Activity</div>
+                <div class="flow-connector"></div>
+                <div class="flow-node flow-decision" id="workflowNode_isNewProcess"><span>Is this a new or changed process?</span></div>
+
+                <div class="w-full max-w-4xl relative">
+                    <div class="flow-branch">
+                         <div class="flow-branch-line-h w-1/2 left-0"></div>
+                         <div class="flow-branch-line-h w-1/2 right-0"></div>
+                         <div class="absolute left-1/4 -top-3 flow-label">Yes</div>
+                         <div class="absolute right-1/4 -top-3 flow-label">No</div>
+                    </div>
+                     <div class="flex justify-around w-full">
+                        <div class="w-1/3 flex flex-col items-center">
+                            <div class="flow-branch-line-v h-8"></div>
+                            <div class="flow-node" id="workflowNode_defineScope">Define Scope & Context</div>
+                        </div>
+                        <div class="w-1/3 flex flex-col items-center">
+                            <div class="flow-branch-line-v h-8"></div>
+                            <div class="flow-node" id="workflowNode_reviewExisting">Review Existing Assessments</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full max-w-xl relative flex justify-center mt-4">
+                    <div class="absolute top-0 left-0 w-1/4 border-t-2 border-[#472F92]"></div>
+                    <div class="absolute top-0 right-0 w-1/4 border-t-2 border-[#472F92]"></div>
+                    <div class="absolute top-0 left-1/4 w-1/2 h-8 border-x-2 border-b-2 border-[#472F92] rounded-b-lg"></div>
+                </div>
+
+                <div class="flow-connector mt-8"></div>
+                <div class="flow-node" id="workflowNode_identifyHazards">Identify Potential Hazards/Risks</div>
+                <div class="flow-connector"></div>
+                <div class="flow-node" id="workflowNode_analyzeRisk">Analyze Risk: Likelihood & Severity</div>
+                <div class="flow-connector"></div>
+                <div class="flow-node flow-decision" id="workflowNode_isAcceptable"><span>Is the Risk Acceptable?</span></div>
+
+                <div class="w-full max-w-4xl relative">
+                     <div class="flow-branch">
+                         <div class="flow-branch-line-h w-1/2 left-0"></div>
+                         <div class="flow-branch-line-h w-1/2 right-0"></div>
+                         <div class="absolute left-1/4 -top-3 flow-label">No</div>
+                         <div class="absolute right-1/4 -top-3 flow-label">Yes</div>
+                    </div>
+                    <div class="flex justify-around items-start w-full">
+                        <div class="w-1/3 flex flex-col items-center">
+                             <div class="flow-branch-line-v h-8"></div>
+                             <div class="flow-node" id="workflowNode_developMitigation">Develop Mitigation Strategies</div>
+                             <div class="flow-connector"></div>
+                             <div class="flow-node" id="workflowNode_implementMitigation">Implement Mitigation</div>
+                             <div class="flow-connector"></div>
+                             <div class="flow-node" id="workflowNode_evaluateEffectiveness">Evaluate Effectiveness</div>
+                             <div class="flow-connector"></div>
+                             <div class="flow-node flow-decision" id="workflowNode_isMitigationEffective"><span>Is Mitigation Effective?</span></div>
+                        </div>
+                        <div class="w-1/3 flex flex-col items-center pt-8">
+                             <div class="w-px h-full bg-[#472F92]"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full max-w-6xl relative h-20">
+                     <div class="absolute left-0 bottom-0 w-1/2 h-full flex items-end">
+                         <div class="w-1/2 relative">
+                             <div class="absolute left-1/4 -top-8 flow-label">No</div>
+                             <div class="h-2 w-full bg-[#472F92]"></div>
+                             <div class="absolute -left-px top-0 h-8 w-2 bg-[#472F92]"></div>
+                         </div>
+                     </div>
+                     <div class="absolute right-0 w-2/3 h-full">
+                         <div class="absolute right-1/2 top-4 flow-label">Yes</div>
+                         <div class="w-full h-2 bg-[#472F92] absolute bottom-0"></div>
+                         <div class="absolute left-1/3 -top-px h-12 w-2 bg-[#472F92]"></div>
+                     </div>
+                </div>
+
+                <div class="flow-connector"></div>
+                <div class="flow-node" id="workflowNode_monitorReview">Monitor & Review</div>
+                <div class="flow-connector"></div>
+                <div class="flow-node" id="workflowNode_documentCommunicate">Document & Communicate</div>
+                <div class="flow-connector"></div>
+                <div class="flow-node bg-[#00A6FB] text-white border-[#00A6FB]" id="workflowNode_end">End: Continuous Improvement</div>
+            </div>
+
+            <div class="bg-[#472F92] rounded-lg shadow-xl p-6 md:p-8 mt-12 text-white">
+                <h2 class="text-3xl font-bold text-[#FECD54] mb-6 text-center">Workflow Challenge: Navigate the Lab!</h2>
+                <p class="text-center text-gray-200 max-w-4xl mx-auto mb-8">Choose a challenge below and guide the lab through its risk management process. Make the right decisions to advance, but choose wisely – a wrong step will send you back to the start of the challenge!</p>
+
+                <div class="flex flex-col md:flex-row items-center justify-center gap-4 mb-6">
+                    <label for="challengeSelect" class="text-lg font-semibold text-gray-100">Select Challenge:</label>
+                    <select id="challengeSelect" class="p-2 rounded-md bg-white text-gray-800 border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00A6FB]">
+                        <option value="">-- Choose a Challenge --</option>
+                        <option value="0">Challenge 1: New Test Implementation</option>
+                        <option value="1">Challenge 2: Recurring Error Investigation</option>
+                        <option value="2">Challenge 3: Equipment Malfunction</option>
+                        <option value="3">Challenge 4: Data Breach Concern</option>
+                        <option value="4">Challenge 5: Post-Mitigation Review</option>
+                    </select>
+                    <button id="startChallengeButton" class="game-option-button px-6 py-3" disabled>Start Challenge</button>
+                </div>
+
+                <div id="gameArea" class="p-4 md:p-6 border border-gray-200 rounded-lg bg-white shadow-inner hidden">
+                    <div class="flex justify-between items-center mb-6 px-4 py-3 bg-gray-100 rounded-lg shadow-md">
+                        <div class="text-lg font-bold text-[#472F92]">Challenge Progress: <span id="challengeProgress">0</span> / <span id="challengeTotalSteps">0</span></div>
+                        <div class="text-lg font-bold text-[#472F92]">Current Step: <span id="currentWorkflowStepName"></span></div>
+                    </div>
+                    <p id="scenarioQuestion" class="text-xl font-semibold mb-6 text-gray-700"></p>
+                    <div id="scenarioOptions" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <!-- Options will be dynamically loaded here -->
+                    </div>
+                    <div id="gameFeedback" class="game-feedback hidden"></div>
+                    <button id="restartCurrentChallengeButton" class="mt-6 w-full game-option-button bg-red-500 hover:bg-red-600 hidden">Restart This Challenge</button>
+                    <button id="challengeCompleteButton" class="mt-6 w-full game-option-button bg-green-500 hover:bg-green-600 hidden">Challenge Complete! Choose Another</button>
+                </div>
+            </div>
+        </section>
+
+        <footer class="text-center mt-12 py-6 border-t border-gray-300">
+            <p class="text-gray-600">This infographic illustrates a standardized approach to clinical laboratory risk management.</p>
+            <p class="text-sm text-gray-500">Data is representative. For educational purposes only.</p>
+        </footer>
+
+    </div>
+
+    <script>
+        const wrapLabel = (label, maxLength = 16) => {
+            const words = label.split(' ');
+            let lines = [];
+            let currentLine = '';
+            words.forEach(word => {
+                if ((currentLine + word).length > maxLength) {
+                    lines.push(currentLine.trim());
+                    currentLine = '';
+                }
+                currentLine += word + ' ';
+            });
+            lines.push(currentLine.trim());
+            return lines;
+        };
+        
+        const tooltipTitleCallback = (tooltipItems) => {
+            const item = tooltipItems[0];
+            let label = item.chart.data.labels[item.dataIndex];
+            if (Array.isArray(label)) {
+              return label.join(' ');
+            } else {
+              return label;
+            }
+        };
+
+        const chartColors = {
+            blue: '#00A6FB',
+            red: '#DC493A',
+            yellow: '#FECD54',
+            purple: '#472F92',
+            lightBlue: 'rgba(0, 166, 251, 0.6)',
+            lightRed: 'rgba(220, 73, 58, 0.6)',
+            lightYellow: 'rgba(254, 205, 84, 0.6)',
+            lightPurple: 'rgba(71, 47, 146, 0.6)',
+            gray: '#6B7280'
+        };
+        
+        const defaultChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                     labels: {
+                        font: {
+                            weight: 'bold'
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        title: tooltipTitleCallback
+                    },
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleFont: { size: 14, weight: 'bold' },
+                    bodyFont: { size: 12 },
+                    padding: 10,
+                    cornerRadius: 4
+                }
+            }
+        };
+
+        // Chart initialization wrapped in window.onload
+        window.onload = function() {
+            const riskCategoriesCanvas = document.getElementById('riskCategoriesChart');
+            console.log('riskCategoriesCanvas element:', riskCategoriesCanvas); // Debugging line
+            if (riskCategoriesCanvas) {
+                const ctxRiskCategories = riskCategoriesCanvas.getContext('2d');
+                new Chart(ctxRiskCategories, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Procedural', 'Pre-Analytical', 'Analytical', 'Post-Analytical', 'Data Security', 'Biological/Chem'],
+                        datasets: [{
+                            label: 'Risk Categories by Frequency',
+                            data: [35, 25, 15, 10, 8, 7],
+                            backgroundColor: [
+                                chartColors.blue,
+                                chartColors.red,
+                                chartColors.yellow,
+                                chartColors.purple,
+                                chartColors.gray,
+                                '#10B981'
+                            ],
+                            borderColor: '#FFFFFF',
+                            borderWidth: 4,
+                        }]
+                    },
+                    options: {
+                        ...defaultChartOptions,
+                        plugins: {
+                            ...defaultChartOptions.plugins,
+                            legend: {
+                                position: 'right'
+                            }
+                        }
+                    }
+                });
+            } else {
+                console.error("Canvas 'riskCategoriesChart' not found on window.onload!");
+            }
+
+
+            // The following two canvas elements (riskMatrixChart and hierarchyChart) are not present in the HTML.
+            // This is likely the source of the repeated 'getContext' errors.
+            // I'm commenting them out to prevent errors, as they refer to non-existent elements.
+            // If you intend to add these charts, you'll need to add <canvas id="riskMatrixChart"></canvas>
+            // and <canvas id="hierarchyChart"></canvas> elements to your HTML.
+
+            /*
+            const riskMatrixCanvas = document.getElementById('riskMatrixChart');
+            console.log('riskMatrixCanvas element:', riskMatrixCanvas); // Debugging line
+            if (riskMatrixCanvas) {
+                const ctxRiskMatrix = riskMatrixCanvas.getContext('2d');
+                new Chart(ctxRiskMatrix, {
+                    type: 'bubble',
+                    data: {
+                        labels: ['Low Risks', 'Moderate Risks', 'High Risks', 'Extreme Risks'],
+                        datasets: [
+                            { label: 'Minor Impact', data: [{ x: 1, y: 1, r: 25 }], backgroundColor: chartColors.lightBlue },
+                            { label: 'Moderate Impact', data: [{ x: 3, y: 3, r: 15 }, { x: 2, y: 4, r: 10 }], backgroundColor: chartColors.lightYellow },
+                            { label: 'Major Impact', data: [{ x: 4, y: 4, r: 8 }], backgroundColor: chartColors.lightRed },
+                            { label: 'Catastrophic Impact', data: [{ x: 5, y: 5, r: 4 }], backgroundColor: chartColors.lightPurple },
+                        ]
+                    },
+                    options: {
+                        ...defaultChartOptions,
+                        scales: {
+                            x: {
+                                title: { display: true, text: 'Likelihood →', font: { size: 14, weight: 'bold' } },
+                                min: 0, max: 6,
+                                ticks: { stepSize: 1, callback: (val) => ['','Rare','','Possible','','Frequent'][val] || '' }
+                            },
+                            y: {
+                                title: { display: true, text: 'Severity →', font: { size: 14, weight: 'bold' } },
+                                min: 0, max: 6,
+                                ticks: { stepSize: 1, callback: (val) => ['','Negligible','','Moderate','','Major'][val] || '' }
+                            }
+                        }
+                    }
+                });
+            } else {
+                console.error("Canvas 'riskMatrixChart' not found on window.onload!");
+            }
+
+
+            const hierarchyCanvas = document.getElementById('hierarchyChart');
+            console.log('hierarchyCanvas element:', hierarchyCanvas); // Debugging line
+            if (hierarchyCanvas) {
+                const ctxHierarchy = hierarchyCanvas.getContext('2d');
+                new Chart(ctxHierarchy, {
+                    type: 'bar',
+                    data: {
+                        labels: hierarchyLabels.map(label => wrapLabel(label)),
+                        datasets: [{
+                            label: 'Effectiveness',
+                            data: [20, 40, 60, 80, 100],
+                            backgroundColor: [
+                                chartColors.red,
+                                chartColors.yellow,
+                                chartColors.blue,
+                                chartColors.purple,
+                                '#10B981'
+                            ],
+                            borderColor: [
+                                chartColors.red,
+                                chartColors.yellow,
+                                chartColors.blue,
+                                chartColors.purple,
+                                '#10B981'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        ...defaultChartOptions,
+                        indexAxis: 'y',
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                title: { display: true, text: 'Relative Effectiveness →', font: { weight: 'bold' }}
+                            },
+                            y: {
+                                grid: { display: false }
+                            }
+                        }
+                    },
+                    plugins: {
+                        ...defaultChartOptions.plugins,
+                        legend: {
+                            display: false
+                        }
+                    }
+                });
+            } else {
+                console.error("Canvas 'hierarchyChart' not found on window.onload!");
+            }
+            */
+            
+
+            // Gamification Logic for Workflow
+            let currentChallenge = null;
+            let currentChallengeStepIndex = 0;
+
+            const workflowNodes = {
+                'workflowNode_start': document.getElementById('workflowNode_start'),
+                'workflowNode_isNewProcess': document.getElementById('workflowNode_isNewProcess'),
+                'workflowNode_defineScope': document.getElementById('workflowNode_defineScope'),
+                'workflowNode_reviewExisting': document.getElementById('workflowNode_reviewExisting'),
+                'workflowNode_identifyHazards': document.getElementById('workflowNode_identifyHazards'),
+                'workflowNode_analyzeRisk': document.getElementById('workflowNode_analyzeRisk'),
+                'workflowNode_isAcceptable': document.getElementById('workflowNode_isAcceptable'),
+                'workflowNode_developMitigation': document.getElementById('workflowNode_developMitigation'),
+                'workflowNode_implementMitigation': document.getElementById('workflowNode_implementMitigation'),
+                'workflowNode_evaluateEffectiveness': document.getElementById('workflowNode_evaluateEffectiveness'),
+                'workflowNode_isMitigationEffective': document.getElementById('workflowNode_isMitigationEffective'),
+                'workflowNode_monitorReview': document.getElementById('workflowNode_monitorReview'),
+                'workflowNode_documentCommunicate': document.getElementById('workflowNode_documentCommunicate'),
+                'workflowNode_end': document.getElementById('workflowNode_end')
+            };
+
+            const challenges = [
+                // Challenge 1: New Test Implementation
+                [
+                    {
+                        workflowNodeId: 'workflowNode_start',
+                        question: "Challenge 1: A new molecular diagnostic test is being introduced. What is your first step?",
+                        options: [
+                            { text: "Immediately start training staff on the new test.", correct: false, feedback: "Jumping straight to training without proper assessment can lead to oversights. Think about the very first step in the workflow." },
+                            { text: "Identify this new test as a process requiring risk assessment.", correct: true, feedback: "Correct! The first step is to identify the new process or activity." },
+                            { text: "Order all necessary reagents for the new test.", correct: false, feedback: "Ordering reagents is part of implementation, but not the initial risk assessment step." },
+                            { text: "Check if other labs are already using this test.", correct: false, feedback: "Benchmarking can be useful, but it's not the primary first step for *your* lab's risk assessment." }
+                        ]
+                    },
+                    {
+                        workflowNodeId: 'workflowNode_isNewProcess',
+                        question: "This is a new test. What's the next logical step in the workflow?",
+                        options: [
+                            { text: "Review existing risk assessments for similar tests.", correct: false, feedback: "This is for *existing* processes. Since it's new, you need to define its specifics." },
+                            { text: "Define the scope and context of this new test.", correct: true, feedback: "Correct! For a new process, you must define its scope, objectives, and context." },
+                            { text: "Identify potential hazards immediately.", correct: false, feedback: "While important, you need to understand the test's scope fully before identifying hazards effectively." }
+                        ]
+                    },
+                    {
+                        workflowNodeId: 'workflowNode_identifyHazards',
+                        question: "You've defined the scope. What's the next critical step?",
+                        options: [
+                            { text: "Analyze the likelihood and severity of risks.", correct: false, feedback: "Analysis comes after identification. You need to list the hazards first." },
+                            { text: "Identify all potential hazards and risks associated with the new test.", correct: true, feedback: "Correct! Now that the scope is clear, you can identify specific hazards." },
+                            { text: "Develop mitigation strategies.", correct: false, feedback: "You can't mitigate what you haven't identified and analyzed." }
+                        ]
+                    },
+                    {
+                        workflowNodeId: 'workflowNode_end',
+                        question: "Congratulations! You've successfully navigated the initial steps of implementing a new test. This challenge is complete!",
+                        options: [] // No options for completion step
+                    }
+                ],
+                // Challenge 2: Recurring Error Investigation
+                [
+                    {
+                        workflowNodeId: 'workflowNode_start',
+                        question: "Challenge 2: The lab has noticed a recurring issue with incorrect patient demographics on requisitions. What's the very first step in addressing this?",
+                        options: [
+                            { text: "Immediately retrain all phlebotomists.", correct: false, feedback: "Retraining might be a solution, but you need to assess the root cause and risk first." },
+                            { text: "Identify this recurring error as a process requiring risk assessment.", correct: true, feedback: "Correct! Recognizing the problem as a risk assessment trigger is the starting point." },
+                            { text: "Change the requisition form design.", correct: false, feedback: "This is a potential mitigation, but you need to understand the risk fully first." }
+                        ]
+                    },
+                    {
+                        workflowNodeId: 'workflowNode_isNewProcess',
+                        question: "This is an existing process with a known error. What's the next step?",
+                        options: [
+                            { text: "Define the scope and context of the requisition process.", correct: false, feedback: "While good practice, for an *existing* process with a known issue, there's a more direct next step." },
+                            { text: "Review existing risk assessments related to patient identification/requisitions.", correct: true, feedback: "Correct! For an existing process, review past assessments to see if the risk was identified or if controls failed." },
+                            { text: "Analyze the likelihood of this error.", correct: false, feedback: "You need to review existing information before jumping to analysis." }
+                        ]
+                    },
+                    {
+                        workflowNodeId: 'workflowNode_identifyHazards',
+                        question: "You've reviewed existing assessments. What's next for this recurring error?",
+                        options: [
+                            { text: "Analyze the likelihood and severity of incorrect demographics.", correct: false, feedback: "You need to ensure all potential hazards are identified before analysis." },
+                            { text: "Identify all specific potential hazards contributing to incorrect demographics.", correct: true, feedback: "Correct! Even with a known error, a thorough identification of all contributing hazards is crucial." },
+                            { text: "Implement a new data entry system.", correct: false, feedback: "This is a mitigation, not the next step in the assessment process." }
+                        ]
+                    },
+                    {
+                        workflowNodeId: 'workflowNode_analyzeRisk',
+                        question: "You've identified the hazards. What's the next step in the workflow?",
+                        options: [
+                            { text: "Develop mitigation strategies.", correct: false, feedback: "You need to evaluate the risk before developing solutions." },
+                            { text: "Analyze the risk: determine likelihood and severity of incorrect demographics.", correct: true, feedback: "Correct! Quantifying the risk is the next logical step." },
+                            { text: "Document the findings.", correct: false, feedback: "Documentation is important, but it's not the immediate next action after hazard identification." }
+                        ]
+                    },
+                    {
+                        workflowNodeId: 'workflowNode_end',
+                        question: "Congratulations! You've successfully initiated the investigation of a recurring error. This challenge is complete!",
+                        options: []
+                    }
+                ],
+                // Challenge 3: Equipment Malfunction
+                [
+                    {
+                        workflowNodeId: 'workflowNode_start',
+                        question: "Challenge 3: A critical lab instrument unexpectedly malfunctions, causing a delay in patient results. What's your first step?",
+                        options: [
+                            { text: "Call the instrument service engineer immediately.", correct: false, feedback: "While important for repair, the first step in risk management is broader." },
+                            { text: "Identify the instrument malfunction as a process requiring risk assessment.", correct: true, feedback: "Correct! This incident triggers a need for risk assessment." },
+                            { text: "Manually process all pending samples.", correct: false, feedback: "This is a workaround, not the initial risk assessment step." }
+                        ]
+                    },
+                    {
+                        workflowNodeId: 'workflowNode_isNewProcess',
+                        question: "This is an existing instrument. What's the next step in the workflow?",
+                        options: [
+                            { text: "Define the scope of the instrument's operation.", correct: false, feedback: "The instrument is existing, so you should look at past assessments." },
+                            { text: "Review existing risk assessments for this instrument and similar equipment.", correct: true, feedback: "Correct! Reviewing existing assessments helps understand if this risk was foreseen or if controls failed." },
+                            { text: "Identify potential hazards of instrument malfunction.", correct: false, feedback: "You need to review existing information before identifying new hazards." }
+                        ]
+                    },
+                    {
+                        workflowNodeId: 'workflowNode_identifyHazards',
+                        question: "You've reviewed existing assessments. What's the next logical step for this malfunction?",
+                        options: [
+                            { text: "Analyze the impact of the malfunction on patient results.", correct: false, feedback: "Analysis comes after identification. You need to list all related hazards first." },
+                            { text: "Identify all potential hazards arising from the instrument malfunction (e.g., sample integrity, result delay).", correct: true, feedback: "Correct! A thorough identification of all related hazards is crucial." },
+                            { text: "Order spare parts for the instrument.", correct: false, feedback: "This is a mitigation, not part of the risk identification stage." }
+                        ]
+                    },
+                    {
+                        workflowNodeId: 'workflowNode_analyzeRisk',
+                        question: "You've identified the hazards. What's the next step to address the malfunction risk?",
+                        options: [
+                            { text: "Develop a contingency plan for future malfunctions.", correct: false, feedback: "This is a mitigation strategy, but you need to analyze the current risk first." },
+                            { text: "Analyze the likelihood of future malfunctions and the severity of their impact.", correct: true, feedback: "Correct! Quantifying the risk allows for informed decision-making." },
+                            { text: "Document the malfunction event.", correct: false, feedback: "Documentation is part of the final steps, not the immediate next step after hazard identification." }
+                        ]
+                    },
+                    {
+                        workflowNodeId: 'workflowNode_end',
+                        question: "Congratulations! You've successfully initiated the response to an equipment malfunction. This challenge is complete!",
+                        options: []
+                    }
+                ],
+                // Challenge 4: Data Breach Concern
+                [
+                    {
+                        workflowNodeId: 'workflowNode_start',
+                        question: "Challenge 4: A staff member reports suspicious activity on a lab computer, raising concerns about a potential data breach. What's the first step?",
+                        options: [
+                            { text: "Shut down all lab computers immediately.", correct: false, feedback: "While a drastic measure, the first step in risk management is to identify the event as a risk trigger." },
+                            { text: "Identify this suspicious activity as a process requiring risk assessment.", correct: true, feedback: "Correct! Recognizing the potential data breach as a risk assessment trigger is the starting point." },
+                            { text: "Notify IT security.", correct: false, feedback: "Notification is important, but the first step is to frame it within the risk assessment process." }
+                        ]
+                    },
+                    {
+                        workflowNodeId: 'workflowNode_isNewProcess',
+                        question: "This is an existing system with a new type of threat. What's the next step?",
+                        options: [
+                            { text: "Define the scope of the data security system.", correct: false, feedback: "The system exists. You should review prior assessments." },
+                            { text: "Review existing risk assessments for data security and IT systems.", correct: true, feedback: "Correct! For an existing system with a new threat, review past assessments to see if this type of risk was considered." },
+                            { text: "Identify all potential data security hazards.", correct: false, feedback: "You need to review existing information before identifying new hazards." }
+                        ]
+                    },
+                    {
+                        workflowNodeId: 'workflowNode_identifyHazards',
+                        question: "You've reviewed existing assessments. What's the next step regarding this data breach concern?",
+                        options: [
+                            { text: "Analyze the likelihood and severity of a data breach.", correct: false, feedback: "Analysis comes after identification. You need to list all related hazards first." },
+                            { text: "Identify all specific potential hazards related to data security and the suspicious activity.", correct: true, feedback: "Correct! A thorough identification of all contributing hazards is crucial." },
+                            { text: "Implement new firewall rules.", correct: false, feedback: "This is a mitigation, not the next step in the assessment process." }
+                        ]
+                    },
+                    {
+                        workflowNodeId: 'workflowNode_analyzeRisk',
+                        question: "You've identified the data security hazards. What's the next step in the workflow?",
+                        options: [
+                            { text: "Develop a data recovery plan.", correct: false, feedback: "This is a mitigation strategy, but you need to analyze the current risk first." },
+                            { text: "Analyze the risk: determine likelihood and severity of a data breach.", correct: true, feedback: "Correct! Quantifying the risk allows for informed decision-making." },
+                            { text: "Communicate the incident to affected patients.", correct: false, feedback: "Communication is a later step, after the risk has been analyzed and potentially mitigated." }
+                        ]
+                    },
+                    {
+                        workflowNodeId: 'workflowNode_end',
+                        question: "Congratulations! You've successfully initiated the response to a data security concern. This challenge is complete!",
+                        options: []
+                    }
+                ],
+                // Challenge 5: Post-Mitigation Review
+                [
+                    {
+                        workflowNodeId: 'workflowNode_implementMitigation',
+                        question: "Challenge 5: The lab implemented a new sample labeling system to reduce misidentification. Now that it's been in place for 3 months, what's the next step in the workflow?",
+                        options: [
+                            { text: "Assume it's working and move on to other risks.", correct: false, feedback: "Risk management is a continuous process. You can't assume effectiveness." },
+                            { text: "Evaluate the effectiveness of the new labeling system.", correct: true, feedback: "Correct! After implementation, you must evaluate if the mitigation is working as intended." },
+                            { text: "Develop new mitigation strategies for misidentification.", correct: false, feedback: "You need to evaluate the *current* mitigation first before developing new ones." }
+                        ]
+                    },
+                    {
+                        workflowNodeId: 'workflowNode_evaluateEffectiveness',
+                        question: "You've evaluated the system and found that misidentification errors have significantly decreased. What's the next step?",
+                        options: [
+                            { text: "The mitigation is effective; stop monitoring.", correct: false, feedback: "Even effective mitigations require ongoing oversight." },
+                            { text: "Monitor and review the process regularly to ensure sustained effectiveness.", correct: true, feedback: "Correct! Continuous monitoring and review are essential for long-term risk management." },
+                            { text: "Go back and analyze the risk again.", correct: false, feedback: "The risk was already analyzed; now you're in the monitoring phase." }
+                        ]
+                    },
+                    {
+                        workflowNodeId: 'workflowNode_monitorReview',
+                        question: "You've been monitoring the system for a year, and it continues to perform well. What's the final key step for this risk?",
+                        options: [
+                            { text: "Stop all risk management activities for this process.", correct: false, feedback: "Risk management is continuous; you never truly 'stop'." },
+                            { text: "Document the successful mitigation and ongoing monitoring, and communicate findings.", correct: true, feedback: "Correct! Documentation and communication are vital for knowledge sharing and compliance." },
+                            { text: "Identify new potential hazards.", correct: false, feedback: "While new hazards can always emerge, the immediate next step for *this* successful mitigation is documentation." }
+                        ]
+                    },
+                    {
+                        workflowNodeId: 'workflowNode_end',
+                        question: "Congratulations! You've successfully completed a full cycle of risk management for a mitigated risk. This challenge is complete!",
+                        options: []
+                    }
+                ]
+            ];
+
+            const challengeSelect = document.getElementById('challengeSelect');
+            const startChallengeButton = document.getElementById('startChallengeButton');
+            const gameArea = document.getElementById('gameArea');
+            const challengeProgressElement = document.getElementById('challengeProgress');
+            const challengeTotalStepsElement = document.getElementById('challengeTotalSteps');
+            const currentWorkflowStepNameElement = document.getElementById('currentWorkflowStepName');
+            const scenarioQuestionElement = document.getElementById('scenarioQuestion');
+            const scenarioOptionsElement = document.getElementById('scenarioOptions');
+            const gameFeedbackElement = document.getElementById('gameFeedback');
+            const restartCurrentChallengeButton = document.getElementById('restartCurrentChallengeButton');
+            const challengeCompleteButton = document.getElementById('challengeCompleteButton');
+
+            function highlightWorkflowNode(nodeId) {
+                Object.values(workflowNodes).forEach(node => node.classList.remove('active'));
+                if (nodeId && workflowNodes[nodeId]) {
+                    workflowNodes[nodeId].classList.add('active');
+                    workflowNodes[nodeId].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+
+            function loadChallengeStep() {
+                if (!currentChallenge) return;
+
+                const step = currentChallenge[currentChallengeStepIndex];
+                highlightWorkflowNode(step.workflowNodeId);
+                currentWorkflowStepNameElement.textContent = workflowNodes[step.workflowNodeId].textContent.replace('Start: ', '').replace('Is this a new or changed process?', 'New/Changed Process Decision').replace('Is the Risk Acceptable?', 'Risk Acceptability Decision').replace('Is Mitigation Effective?', 'Mitigation Effectiveness Decision').replace('End: ', '');
+                challengeProgressElement.textContent = currentChallengeStepIndex;
+                challengeTotalStepsElement.textContent = currentChallenge.length - 1; // Exclude the completion step from total progress
+
+                scenarioQuestionElement.textContent = step.question;
+                scenarioOptionsElement.innerHTML = '';
+                gameFeedbackElement.classList.add('hidden');
+                gameFeedbackElement.classList.remove('correct', 'incorrect');
+                restartCurrentChallengeButton.classList.add('hidden');
+                challengeCompleteButton.classList.add('hidden');
+
+                if (step.options.length > 0) {
+                    step.options.forEach((option, index) => {
+                        const button = document.createElement('button');
+                        button.textContent = option.text;
+                        button.classList.add('game-option-button');
+                        button.dataset.index = index;
+                        button.addEventListener('click', handleOptionClick);
+                        scenarioOptionsElement.appendChild(button);
+                    });
+                } else {
+                    // This is a completion step
+                    scenarioOptionsElement.innerHTML = '';
+                    challengeCompleteButton.classList.remove('hidden');
+                    highlightWorkflowNode(null); // Remove highlight when challenge is complete
+                }
+            }
+
+            function handleOptionClick(event) {
+                const selectedButton = event.target;
+                const selectedOptionIndex = parseInt(selectedButton.dataset.index);
+                const currentStep = currentChallenge[currentChallengeStepIndex];
+                const isCorrect = currentStep.options[selectedOptionIndex].correct;
+
+                Array.from(scenarioOptionsElement.children).forEach(button => {
+                    button.disabled = true;
+                    if (parseInt(button.dataset.index) === selectedOptionIndex) {
+                        button.classList.add(isCorrect ? 'correct' : 'incorrect');
+                    } else if (currentStep.options[parseInt(button.dataset.index)].correct) {
+                        button.classList.add('correct');
+                    }
+                });
+
+                gameFeedbackElement.textContent = currentStep.options[selectedOptionIndex].feedback;
+                gameFeedbackElement.classList.remove('hidden');
+                gameFeedbackElement.classList.add(isCorrect ? 'correct' : 'incorrect');
+
+                if (isCorrect) {
+                    currentChallengeStepIndex++;
+                    setTimeout(loadChallengeStep, 1500); // Wait a bit for feedback
+                } else {
+                    restartCurrentChallengeButton.classList.remove('hidden');
+                }
+            }
+
+            function startChallenge() {
+                const selectedChallengeIndex = challengeSelect.value;
+                if (selectedChallengeIndex === "") {
+                    gameArea.classList.add('hidden');
+                    highlightWorkflowNode(null);
+                    return;
+                }
+                currentChallenge = challenges[parseInt(selectedChallengeIndex)];
+                currentChallengeStepIndex = 0;
+                gameArea.classList.remove('hidden');
+                loadChallengeStep();
+            }
+
+            function restartCurrentChallenge() {
+                currentChallengeStepIndex = 0;
+                loadChallengeStep();
+            }
+
+            challengeSelect.addEventListener('change', () => {
+                startChallengeButton.disabled = challengeSelect.value === "";
+                if (challengeSelect.value === "") {
+                    gameArea.classList.add('hidden');
+                    highlightWorkflowNode(null);
+                }
+            });
+            startChallengeButton.addEventListener('click', startChallenge);
+            restartCurrentChallengeButton.addEventListener('click', restartCurrentChallenge);
+            challengeCompleteButton.addEventListener('click', () => {
+                challengeSelect.value = ""; // Reset dropdown
+                startChallengeButton.disabled = true;
+                gameArea.classList.add('hidden');
+                highlightWorkflowNode(null);
+            });
+        }; // End of window.onload
+    </script>
+</body>
+</html>
